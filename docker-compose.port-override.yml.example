@@ -1,0 +1,25 @@
+# Example: Override docker-compose.yml to change PostgreSQL port
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.port-override.yml up
+#
+# Set these environment variables:
+#   PGPORT=5433
+#   WO_DATABASE_PORT=5433
+
+version: '2.1'
+services:
+  db:
+    environment:
+      - PGPORT=${PGPORT:-5433}
+    expose:
+      - "${PGPORT:-5433}"
+  
+  webapp:
+    environment:
+      - WO_DATABASE_PORT=${WO_DATABASE_PORT:-5433}
+    entrypoint: /bin/bash -c "service cron start && chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db ${WO_DATABASE_PORT:-5433} /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh\""
+  
+  worker:
+    environment:
+      - WO_DATABASE_PORT=${WO_DATABASE_PORT:-5433}
+    entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db ${WO_DATABASE_PORT:-5433} /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
+
