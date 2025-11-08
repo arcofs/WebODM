@@ -67,7 +67,9 @@ if [[ "$WO_DEFAULT_NODES" > 0 ]]; then
     while [ $i -ne "$WO_DEFAULT_NODES" ]
     do
         i=$(($i+1))
-        NODE_HOST=$(python manage.py getnodehostname webodm_node-odm_$i)
+        # Use service name directly (Docker Compose uses service names as hostnames)
+        # The service name in docker-compose.yml is "node-odm"
+        NODE_HOST="node-odm"
         python manage.py addnode $NODE_HOST 3000 --label node-odm-$i
     done
 fi
